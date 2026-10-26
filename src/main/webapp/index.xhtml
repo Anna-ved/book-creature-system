@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core">
+
+<h:head>
+    <title>Book Creatures</title>
+</h:head>
+
+<h:body>
+
+    <h1>Book Creatures</h1>
+
+    <h:link value="Добавить вспомогательные объекты"
+            outcome="references.xhtml"/>
+
+    <h:link value="Создать BookCreature"
+            outcome="create.xhtml"/>
+
+    <h:dataTable value="#{bookCreatureBean.creatures}"
+                 var="creature"
+                 border="1">
+
+        <h:column>
+            <f:facet name="header">ID</f:facet>
+            #{creature.id}
+        </h:column>
+
+        <h:column>
+            <f:facet name="header">Name</f:facet>
+            #{creature.name}
+        </h:column>
+
+        <h:column>
+            <f:facet name="header">X</f:facet>
+            #{creature.coordinates.x}
+        </h:column>
+
+        <h:column>
+            <f:facet name="header">Y</f:facet>
+            #{creature.coordinates.y}
+        </h:column>
+
+        <h:column>
+            <f:facet name="header">Creation Date</f:facet>
+            #{creature.creationDate}
+        </h:column>
+
+        <h:column>
+            <f:facet name="header">Age</f:facet>
+            #{creature.age}
+        </h:column>
+
+        <h:column>
+            <f:facet name="header">Type</f:facet>
+            #{creature.creatureType}
+        </h:column>
+
+        <h:column>
+            <f:facet name="header">City</f:facet>
+            #{creature.creatureLocation.name}
+        </h:column>
+
+        <h:column>
+            <f:facet name="header">Attack</f:facet>
+            #{creature.attackLevel}
+        </h:column>
+
+        <h:column>
+            <f:facet name="header">Defense</f:facet>
+            #{creature.defenseLevel}
+        </h:column>
+
+        <h:column>
+            <f:facet name="header">Ring</f:facet>
+            #{creature.ring.name}
+        </h:column>
+
+    </h:dataTable>
+
+</h:body>
+
+</html>

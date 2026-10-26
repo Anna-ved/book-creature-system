@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core">
+
+<h:head>
+    <title>Вспомогательные объекты</title>
+</h:head>
+
+<h:body>
+
+    <h1>Вспомогательные объекты</h1>
+
+    <h:link value="На главную" outcome="index.xhtml"/>
+
+    <h2>Координаты</h2>
+
+    <h:form>
+        <h:messages/>
+
+        X:
+        <h:inputText value="#{referenceBean.coordinates.x}"/>
+        <br/>
+
+        Y:
+        <h:inputText value="#{referenceBean.coordinates.y}"/>
+        <br/>
+
+        <h:commandButton
+                value="Добавить координаты"
+                action="#{referenceBean.saveCoordinates}"/>
+    </h:form>
+
+
+    <h2>Город</h2>
+
+    <h:form>
+        <h:messages/>
+
+        Название:
+        <h:inputText value="#{referenceBean.city.name}"/>
+        <br/>
+
+        Площадь:
+        <h:inputText value="#{referenceBean.city.area}"/>
+        <br/>
+
+        Население:
+        <h:inputText value="#{referenceBean.city.population}"/>
+        <br/>
+
+        Столица:
+        <h:selectBooleanCheckbox value="#{referenceBean.city.capital}"/>
+        <br/>
+
+        Плотность населения:
+        <h:inputText value="#{referenceBean.city.populationDensity}"/>
+        <br/>
+
+        Губернатор:
+        <h:selectOneMenu value="#{referenceBean.city.governor}">
+            <f:selectItem itemLabel="Не выбран" itemValue="#{null}"/>
+
+            <f:selectItems value="#{referenceBean.creatureTypes}"
+                           var="type"
+                           itemValue="#{type}"
+                           itemLabel="#{type}"/>
+        </h:selectOneMenu>
+        <br/>
+
+        <h:commandButton
+                value="Добавить город"
+                action="#{referenceBean.saveCity}"/>
+    </h:form>
+
+
+    <h2>Кольцо</h2>
+
+    <h:form>
+        <h:messages/>
+
+        Название:
+        <h:inputText value="#{referenceBean.ring.name}"/>
+        <br/>
+
+        Вес:
+        <h:inputText value="#{referenceBean.ring.weight}"/>
+        <br/>
+
+        <h:commandButton
+                value="Добавить кольцо"
+                action="#{referenceBean.saveRing}"/>
+    </h:form>
+
+</h:body>
+</html>

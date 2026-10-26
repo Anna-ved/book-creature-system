@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core">
+
+<h:head>
+    <title>Создание BookCreature</title>
+</h:head>
+
+<h:body>
+
+    <h1>Создание BookCreature</h1>
+
+    <h:link value="На главную" outcome="index.xhtml"/>
+    <br/><br/>
+
+    <h:form>
+
+        <h:messages/>
+
+        <h:panelGrid columns="2">
+
+            <h:outputLabel value="Имя:"/>
+            <h:inputText value="#{bookCreatureBean.newCreature.name}"
+                         required="true"/>
+
+
+            <h:outputLabel value="Возраст:"/>
+            <h:inputText value="#{bookCreatureBean.newCreature.age}"
+                         required="true"/>
+
+
+            <h:outputLabel value="Тип существа:"/>
+            <h:selectOneMenu value="#{bookCreatureBean.newCreature.creatureType}">
+
+                <f:selectItem
+                        itemLabel="Не выбран"
+                        itemValue="#{null}"/>
+
+                <f:selectItems
+                        value="#{bookCreatureBean.creatureTypes}"
+                        var="type"
+                        itemValue="#{type}"
+                        itemLabel="#{type}"/>
+
+            </h:selectOneMenu>
+
+
+            <h:outputLabel value="Attack Level:"/>
+            <h:inputText value="#{bookCreatureBean.newCreature.attackLevel}"
+                         required="true"/>
+
+
+            <h:outputLabel value="Defense Level:"/>
+            <h:inputText value="#{bookCreatureBean.newCreature.defenseLevel}"/>
+
+
+            <h:outputLabel value="Координаты:"/>
+            <h:selectOneMenu value="#{bookCreatureBean.coordinatesId}"
+                             required="true">
+
+                <f:selectItem
+                        itemLabel="Выберите координаты"
+                        itemValue="#{null}"/>
+
+                <f:selectItems
+                        value="#{bookCreatureBean.coordinates}"
+                        var="coordinates"
+                        itemValue="#{coordinates.id}"
+                        itemLabel="X: #{coordinates.x}, Y: #{coordinates.y}"/>
+
+            </h:selectOneMenu>
+
+
+            <h:outputLabel value="Город:"/>
+            <h:selectOneMenu value="#{bookCreatureBean.cityId}"
+                             required="true">
+
+                <f:selectItem
+                        itemLabel="Выберите город"
+                        itemValue="#{null}"/>
+
+                <f:selectItems
+                        value="#{bookCreatureBean.cities}"
+                        var="city"
+                        itemValue="#{city.id}"
+                        itemLabel="#{city.name}"/>
+
+            </h:selectOneMenu>
+
+
+            <h:outputLabel value="Кольцо:"/>
+            <h:selectOneMenu value="#{bookCreatureBean.ringId}">
+
+                <f:selectItem
+                        itemLabel="Без кольца"
+                        itemValue="#{null}"/>
+
+                <f:selectItems
+                        value="#{bookCreatureBean.rings}"
+                        var="ring"
+                        itemValue="#{ring.id}"
+                        itemLabel="#{ring.name}"/>
+
+            </h:selectOneMenu>
+
+        </h:panelGrid>
+
+        <br/>
+
+        <h:commandButton
+                value="Создать"
+                action="#{bookCreatureBean.create}"/>
+
+    </h:form>
+
+</h:body>
+</html>

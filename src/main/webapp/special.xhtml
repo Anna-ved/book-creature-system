@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+    <title>Book Creatures - Специальные операции</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 20px; background-color: #f7f9fa; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 15px; }
+        .op-section { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #e9ecef; }
+        .op-section:last-child { border-bottom: none; }
+        .result-box { margin-top: 10px; font-weight: bold; color: #2b8a3e; }
+    </style>
+</h:head>
+
+<h:body>
+
+    <h:form id="menuForm">
+        <p:menubar>
+            <p:menuitem value="Список существ" outcome="index.xhtml" icon="pi pi-fw pi-users"/>
+            <p:menuitem value="Создать существо" outcome="create.xhtml" icon="pi pi-fw pi-user-plus"/>
+            <p:menuitem value="Специальные операции" outcome="special.xhtml" icon="pi pi-fw pi-bolt"/>
+            <p:menuitem value="Справочники" outcome="references.xhtml" icon="pi pi-fw pi-database"/>
+        </p:menubar>
+    </h:form>
+
+    <div class="card">
+        <h2>Специальные операции над объектами</h2>
+        <p style="color: #6c757d;">Все операции выполняются в виде хранимых функций PostgreSQL на стороне СУБД.</p>
+
+        <p:growl id="growl" showDetail="true"/>
+
+        <div class="op-section">
+            <h3>1. Рассчитать среднее значение attackLevel для всех существ</h3>
+            <h:form id="formAvg">
+                <p:commandButton value="Рассчитать среднюю атаку"
+                                 icon="pi pi-calculator"
+                                 action="#{specialOperationsBean.runAvgAttackLevel}"
+                                 update=":formAvg:avgResult :growl"
+                                 styleClass="ui-button-primary"/>
+
+                <h:panelGroup id="avgResult" layout="block" styleClass="result-box">
+                    <h:outputText value="Средний уровень атаки: #{specialOperationsBean.avgAttackLevel}"
+                                  rendered="#{specialOperationsBean.avgAttackLevel != null}"/>
+                </h:panelGroup>
+            </h:form>
+        </div>
+
+        <div class="op-section">
+            <h3>2. Сгруппировать объекты по значению attackLevel и вернуть количество</h3>
+            <h:form id="formGroup">
+                <p:commandButton value="Сгруппировать по attackLevel"
+                                 icon="pi pi-chart-bar"
+                                 action="#{specialOperationsBean.runGroupByAttack}"
+                                 update=":formGroup:groupTable :growl"
+                                 styleClass="ui-button-info"/>
+
+                <div style="margin-top: 15px; max-width: 500px;">
+                    <p:dataTable id="groupTable"
+                                 value="#{specialOperationsBean.attackGroups}"
+                                 var="g"
+                                 rendered="#{not empty specialOperationsBean.attackGroups}"
+                                 stripedRows="true">
+                        <p:column headerText="Уровень атаки (attackLevel)">
+                            <h:outputText value="#{g.attackLevel}"/>
+                        </p:column>
+                        <p:column headerText="Количество существ">
+                            <h:outputText value="#{g.count}"/>
+                        </p:column>
+                    </p:dataTable>
+                </div>
+            </h:form>
+        </div>
+
+        <div class="op-section">
+            <h3>3. Количество существ, у которых кольцо меньше заданного веса</h3>
+            <h:form id="formRingCount">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <p:outputLabel for="threshold" value="Пороговый вес кольца:"/>
+                    <p:inputNumber id="threshold" value="#{specialOperationsBean.ringWeightThreshold}" minValue="0.01"/>
+                    <p:commandButton value="Посчитать"
+                                     icon="pi pi-search"
+                                     action="#{specialOperationsBean.runCountRingLessThan}"
+                                     update=":formRingCount:countResult :growl"
+                                     styleClass="ui-button-secondary"/>
+                </div>
+
+                <h:panelGroup id="countResult" layout="block" styleClass="result-box">
+                    <h:outputText value="Найдено существ: #{specialOperationsBean.countRingLessThan}"
+                                  rendered="#{specialOperationsBean.countRingLessThan != null}"/>
+                </h:panelGroup>
+            </h:form>
+        </div>
+
+        <div class="op-section">
+            <h3>4. Найти персонажа с самым сильным кольцом</h3>
+            <h:form id="formStrongest">
+                <p:commandButton value="Найти персонажа"
+                                 icon="pi pi-star"
+                                 action="#{specialOperationsBean.runStrongestRing}"
+                                 update=":formStrongest:strongestResult :growl"
+                                 styleClass="ui-button-warning"/>
+
+                <h:panelGroup id="strongestResult" layout="block" style="margin-top: 15px;">
+                    <p:panel header="Персонаж с сильнейшим кольцом"
+                             rendered="#{specialOperationsBean.strongestRingCreature != null}"
+                             style="max-width: 500px;">
+                        <p:panelGrid columns="2" layout="grid">
+                            <h:outputText value="ID существа:"/>
+                            <h:outputText value="#{specialOperationsBean.strongestRingCreature.creatureId}" style="font-weight: bold;"/>
+
+                            <h:outputText value="Имя:"/>
+                            <h:outputText value="#{specialOperationsBean.strongestRingCreature.creatureName}"/>
+
+                            <h:outputText value="Возраст:"/>
+                            <h:outputText value="#{specialOperationsBean.strongestRingCreature.creatureAge}"/>
+
+                            <h:outputText value="Название кольца:"/>
+                            <h:outputText value="#{specialOperationsBean.strongestRingCreature.ringName}"/>
+
+                            <h:outputText value="Вес кольца:"/>
+                            <h:outputText value="#{specialOperationsBean.strongestRingCreature.ringWeight}" style="color: #d6336c; font-weight: bold;"/>
+                        </p:panelGrid>
+                    </p:panel>
+                </h:panelGroup>
+            </h:form>
+        </div>
+
+        <div class="op-section">
+            <h3>5. Уничтожить города эльфов</h3>
+            <p style="color: #868e96; font-size: 0.9em;">
+                Удаляет города, у которых губернатором является эльф (ELF). Жители городов переселяются в безопасный город или удаляются.
+            </p>
+            <h:form id="formDestroy">
+                <p:commandButton value="Уничтожить города эльфов"
+                                 icon="pi pi-exclamation-triangle"
+                                 action="#{specialOperationsBean.runDestroyElfCities}"
+                                 update=":formDestroy:destroyResult :growl"
+                                 styleClass="ui-button-danger">
+                    <p:confirm header="Подтверждение" message="Вы уверены, что хотите уничтожить города эльфов?" icon="pi pi-info-circle"/>
+                </p:commandButton>
+
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade" responsive="true" width="350">
+                    <p:commandButton value="Нет" type="button" styleClass="ui-confirmdialog-no ui-button-secondary"/>
+                    <p:commandButton value="Да, уничтожить" type="button" styleClass="ui-confirmdialog-yes ui-button-danger"/>
+                </p:confirmDialog>
+
+                <h:panelGroup id="destroyResult" layout="block" styleClass="result-box" style="color: #c92a2a;">
+                    <h:outputText value="Операция завершена. Уничтожено городов: #{specialOperationsBean.destroyedCitiesCount}"
+                                  rendered="#{specialOperationsBean.destroyedCitiesCount != null}"/>
+                </h:panelGroup>
+            </h:form>
+        </div>
+
+    </div>
+
+</h:body>
+</html>

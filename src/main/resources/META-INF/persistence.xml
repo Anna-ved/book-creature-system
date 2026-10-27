@@ -18,10 +18,10 @@
                       value="org.postgresql.Driver"/>
 
             <property name="jakarta.persistence.jdbc.url"
-                      value="jdbc:postgresql://localhost:5432/book_creatures"/>
+                      value="jdbc:postgresql://pg:5432/studs?currentSchema=s471800"/>
 
             <property name="jakarta.persistence.jdbc.user"
-                      value="rozze"/>
+                      value="s471800"/>
 
             <property name="jakarta.persistence.jdbc.password"
                       value=""/>

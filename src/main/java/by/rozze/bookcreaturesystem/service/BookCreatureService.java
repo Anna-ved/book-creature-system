@@ -13,41 +13,54 @@ public class BookCreatureService {
     @Inject
     private BookCreatureRepo repository;
 
-
     public List<BookCreature> findAll() {
         return repository.findAll();
     }
 
     public BookCreature getById(Long id) {
-        BookCreature creature = repository.findById(id);
-
+        BookCreature creature = repository.findByIdWithRelations(id);
         if (creature == null) {
-            throw new IllegalArgumentException(
-                    "Объект с id " + id + " не найден"
-            );
+            throw new IllegalArgumentException("Объект с id " + id + " не найден");
         }
-
         return creature;
     }
-
 
     public BookCreature create(BookCreature bookCreature) {
         return repository.save(bookCreature);
     }
 
-
     public BookCreature update(BookCreature bookCreature) {
         return repository.update(bookCreature);
     }
 
-
     public void delete(Long id) {
-        boolean deleted = repository.deleteById(id);
+        deleteWithReassignment(id, null);
+    }
 
+    public void deleteWithReassignment(Long toDeleteId, Long targetId) {
+        boolean deleted = repository.deleteWithReassignment(toDeleteId, targetId);
         if (!deleted) {
-            throw new IllegalArgumentException(
-                    "Объект с id " + id + " не найден"
-            );
+            throw new IllegalArgumentException("Объект с id " + toDeleteId + " не найден для удаления");
         }
+    }
+
+    public Double calculateAvgAttackLevel() {
+        return repository.calculateAvgAttackLevel();
+    }
+
+    public List<Object[]> groupByAttackLevel() {
+        return repository.groupByAttackLevel();
+    }
+
+    public Long countCreaturesByRingWeightLessThan(Float weight) {
+        return repository.countCreaturesByRingWeightLessThan(weight);
+    }
+
+    public Object[] getCreatureWithStrongestRing() {
+        return repository.getCreatureWithStrongestRing();
+    }
+
+    public Integer destroyElfCities() {
+        return repository.destroyElfCities();
     }
 }

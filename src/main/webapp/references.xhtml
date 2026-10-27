@@ -1,96 +1,127 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="jakarta.faces.html"
-      xmlns:f="jakarta.faces.core">
+      xmlns:f="jakarta.faces.core"
+      xmlns:p="http://primefaces.org/ui">
 
 <h:head>
-    <title>Вспомогательные объекты</title>
+    <title>Вспомогательные объекты (Справочники)</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 20px; background-color: #f7f9fa; }
+        .grid-container { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 15px; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex: 1; min-width: 320px; }
+        .field { margin-bottom: 12px; }
+    </style>
 </h:head>
 
 <h:body>
 
-    <h1>Вспомогательные объекты</h1>
-
-    <h:link value="На главную" outcome="index.xhtml"/>
-
-    <h2>Координаты</h2>
-
-    <h:form>
-        <h:messages/>
-
-        X:
-        <h:inputText value="#{referenceBean.coordinates.x}"/>
-        <br/>
-
-        Y:
-        <h:inputText value="#{referenceBean.coordinates.y}"/>
-        <br/>
-
-        <h:commandButton
-                value="Добавить координаты"
-                action="#{referenceBean.saveCoordinates}"/>
+    <h:form id="menuForm">
+        <p:menubar>
+            <p:menuitem value="Список существ" outcome="index.xhtml" icon="pi pi-fw pi-users"/>
+            <p:menuitem value="Создать существо" outcome="create.xhtml" icon="pi pi-fw pi-user-plus"/>
+            <p:menuitem value="Специальные операции" outcome="special.xhtml" icon="pi pi-fw pi-bolt"/>
+            <p:menuitem value="Справочники" outcome="references.xhtml" icon="pi pi-fw pi-database"/>
+        </p:menubar>
     </h:form>
 
+    <p:growl id="growl" showDetail="true"/>
 
-    <h2>Город</h2>
+    <div class="grid-container">
 
-    <h:form>
-        <h:messages/>
+        <div class="card">
+            <h3>Добавить Координаты</h3>
+            <h:form id="coordForm" styleClass="ui-fluid">
+                <p:messages id="coordMessages" showDetail="true" closable="true"/>
 
-        Название:
-        <h:inputText value="#{referenceBean.city.name}"/>
-        <br/>
+                <div class="field">
+                    <p:outputLabel for="coordX" value="Координата X (макс. 161):"/>
+                    <p:inputNumber id="coordX" value="#{referenceBean.coordinates.x}" maxValue="161" decimalPlaces="0" required="true" requiredMessage="X обязателен"/>
+                </div>
 
-        Площадь:
-        <h:inputText value="#{referenceBean.city.area}"/>
-        <br/>
+                <div class="field">
+                    <p:outputLabel for="coordY" value="Координата Y:"/>
+                    <p:inputNumber id="coordY" value="#{referenceBean.coordinates.y}" decimalPlaces="2" required="true" requiredMessage="Y обязателен"/>
+                </div>
 
-        Население:
-        <h:inputText value="#{referenceBean.city.population}"/>
-        <br/>
+                <p:commandButton value="Сохранить координаты"
+                                 icon="pi pi-plus"
+                                 action="#{referenceBean.saveCoordinates}"
+                                 update="coordForm :growl"
+                                 styleClass="ui-button-primary"/>
+            </h:form>
+        </div>
 
-        Столица:
-        <h:selectBooleanCheckbox value="#{referenceBean.city.capital}"/>
-        <br/>
+        <div class="card">
+            <h3>Добавить Магический Город</h3>
+            <h:form id="cityForm" styleClass="ui-fluid">
+                <p:messages id="cityMessages" showDetail="true" closable="true"/>
 
-        Плотность населения:
-        <h:inputText value="#{referenceBean.city.populationDensity}"/>
-        <br/>
+                <div class="field">
+                    <p:outputLabel for="cityName" value="Название города:"/>
+                    <p:inputText id="cityName" value="#{referenceBean.city.name}" required="true" requiredMessage="Название города обязательно"/>
+                </div>
 
-        Губернатор:
-        <h:selectOneMenu value="#{referenceBean.city.governor}">
-            <f:selectItem itemLabel="Не выбран" itemValue="#{null}"/>
+                <div class="field">
+                    <p:outputLabel for="cityArea" value="Площадь (> 0):"/>
+                    <p:inputNumber id="cityArea" value="#{referenceBean.city.area}" minValue="0.01" decimalPlaces="2" required="true" requiredMessage="Площадь должна быть > 0"/>
+                </div>
 
-            <f:selectItems value="#{referenceBean.creatureTypes}"
-                           var="type"
-                           itemValue="#{type}"
-                           itemLabel="#{type}"/>
-        </h:selectOneMenu>
-        <br/>
+                <div class="field">
+                    <p:outputLabel for="cityPop" value="Население (> 0):"/>
+                    <p:inputNumber id="cityPop" value="#{referenceBean.city.population}" minValue="1" decimalPlaces="0" required="true" requiredMessage="Население должно быть > 0"/>
+                </div>
 
-        <h:commandButton
-                value="Добавить город"
-                action="#{referenceBean.saveCity}"/>
-    </h:form>
+                <div class="field">
+                    <p:outputLabel for="cityGov" value="Губернатор:"/>
+                    <p:selectOneMenu id="cityGov" value="#{referenceBean.city.governor}">
+                        <f:selectItem itemLabel="Не выбран" itemValue="#{null}"/>
+                        <f:selectItems value="#{referenceBean.creatureTypes}" var="type" itemValue="#{type}" itemLabel="#{type}"/>
+                    </p:selectOneMenu>
+                </div>
 
+                <div class="field">
+                    <p:outputLabel for="cityCapital" value="Столица: " style="margin-right: 10px;"/>
+                    <p:selectBooleanCheckbox id="cityCapital" value="#{referenceBean.city.capital}"/>
+                </div>
 
-    <h2>Кольцо</h2>
+                <div class="field">
+                    <p:outputLabel for="cityDensity" value="Плотность населения (> 0):"/>
+                    <p:inputNumber id="cityDensity" value="#{referenceBean.city.populationDensity}" minValue="0.01" decimalPlaces="2" required="true" requiredMessage="Плотность должна быть > 0"/>
+                </div>
 
-    <h:form>
-        <h:messages/>
+                <p:commandButton value="Сохранить город"
+                                 icon="pi pi-plus"
+                                 action="#{referenceBean.saveCity}"
+                                 update="cityForm :growl"
+                                 styleClass="ui-button-primary"/>
+            </h:form>
+        </div>
 
-        Название:
-        <h:inputText value="#{referenceBean.ring.name}"/>
-        <br/>
+        <div class="card">
+            <h3>Добавить Кольцо</h3>
+            <h:form id="ringForm" styleClass="ui-fluid">
+                <p:messages id="ringMessages" showDetail="true" closable="true"/>
 
-        Вес:
-        <h:inputText value="#{referenceBean.ring.weight}"/>
-        <br/>
+                <div class="field">
+                    <p:outputLabel for="ringName" value="Название кольца:"/>
+                    <p:inputText id="ringName" value="#{referenceBean.ring.name}" required="true" requiredMessage="Название кольца обязательно"/>
+                </div>
 
-        <h:commandButton
-                value="Добавить кольцо"
-                action="#{referenceBean.saveRing}"/>
-    </h:form>
+                <div class="field">
+                    <p:outputLabel for="ringWeight" value="Вес кольца (> 0):"/>
+                    <p:inputNumber id="ringWeight" value="#{referenceBean.ring.weight}" minValue="0.01" decimalPlaces="2" required="true" requiredMessage="Вес кольца должен быть > 0"/>
+                </div>
+
+                <p:commandButton value="Сохранить кольцо"
+                                 icon="pi pi-plus"
+                                 action="#{referenceBean.saveRing}"
+                                 update="ringForm :growl"
+                                 styleClass="ui-button-primary"/>
+            </h:form>
+        </div>
+
+    </div>
 
 </h:body>
 </html>

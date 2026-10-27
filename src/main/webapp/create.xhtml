@@ -1,118 +1,96 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="jakarta.faces.html"
-      xmlns:f="jakarta.faces.core">
+      xmlns:f="jakarta.faces.core"
+      xmlns:p="http://primefaces.org/ui">
 
 <h:head>
     <title>Создание BookCreature</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 20px; background-color: #f7f9fa; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 15px; max-width: 600px; }
+        .field { margin-bottom: 15px; }
+    </style>
 </h:head>
 
 <h:body>
 
-    <h1>Создание BookCreature</h1>
-
-    <h:link value="На главную" outcome="index.xhtml"/>
-    <br/><br/>
-
-    <h:form>
-
-        <h:messages/>
-
-        <h:panelGrid columns="2">
-
-            <h:outputLabel value="Имя:"/>
-            <h:inputText value="#{bookCreatureBean.newCreature.name}"
-                         required="true"/>
-
-
-            <h:outputLabel value="Возраст:"/>
-            <h:inputText value="#{bookCreatureBean.newCreature.age}"
-                         required="true"/>
-
-
-            <h:outputLabel value="Тип существа:"/>
-            <h:selectOneMenu value="#{bookCreatureBean.newCreature.creatureType}">
-
-                <f:selectItem
-                        itemLabel="Не выбран"
-                        itemValue="#{null}"/>
-
-                <f:selectItems
-                        value="#{bookCreatureBean.creatureTypes}"
-                        var="type"
-                        itemValue="#{type}"
-                        itemLabel="#{type}"/>
-
-            </h:selectOneMenu>
-
-
-            <h:outputLabel value="Attack Level:"/>
-            <h:inputText value="#{bookCreatureBean.newCreature.attackLevel}"
-                         required="true"/>
-
-
-            <h:outputLabel value="Defense Level:"/>
-            <h:inputText value="#{bookCreatureBean.newCreature.defenseLevel}"/>
-
-
-            <h:outputLabel value="Координаты:"/>
-            <h:selectOneMenu value="#{bookCreatureBean.coordinatesId}"
-                             required="true">
-
-                <f:selectItem
-                        itemLabel="Выберите координаты"
-                        itemValue="#{null}"/>
-
-                <f:selectItems
-                        value="#{bookCreatureBean.coordinates}"
-                        var="coordinates"
-                        itemValue="#{coordinates.id}"
-                        itemLabel="X: #{coordinates.x}, Y: #{coordinates.y}"/>
-
-            </h:selectOneMenu>
-
-
-            <h:outputLabel value="Город:"/>
-            <h:selectOneMenu value="#{bookCreatureBean.cityId}"
-                             required="true">
-
-                <f:selectItem
-                        itemLabel="Выберите город"
-                        itemValue="#{null}"/>
-
-                <f:selectItems
-                        value="#{bookCreatureBean.cities}"
-                        var="city"
-                        itemValue="#{city.id}"
-                        itemLabel="#{city.name}"/>
-
-            </h:selectOneMenu>
-
-
-            <h:outputLabel value="Кольцо:"/>
-            <h:selectOneMenu value="#{bookCreatureBean.ringId}">
-
-                <f:selectItem
-                        itemLabel="Без кольца"
-                        itemValue="#{null}"/>
-
-                <f:selectItems
-                        value="#{bookCreatureBean.rings}"
-                        var="ring"
-                        itemValue="#{ring.id}"
-                        itemLabel="#{ring.name}"/>
-
-            </h:selectOneMenu>
-
-        </h:panelGrid>
-
-        <br/>
-
-        <h:commandButton
-                value="Создать"
-                action="#{bookCreatureBean.create}"/>
-
+    <h:form id="menuForm">
+        <p:menubar>
+            <p:menuitem value="Список существ" outcome="index.xhtml" icon="pi pi-fw pi-users"/>
+            <p:menuitem value="Создать существо" outcome="create.xhtml" icon="pi pi-fw pi-user-plus"/>
+            <p:menuitem value="Специальные операции" outcome="special.xhtml" icon="pi pi-fw pi-bolt"/>
+            <p:menuitem value="Справочники" outcome="references.xhtml" icon="pi pi-fw pi-database"/>
+        </p:menubar>
     </h:form>
+
+    <div class="card">
+        <h2>Создание нового существа (BookCreature)</h2>
+
+        <h:form id="createForm" styleClass="ui-fluid">
+            <p:messages id="messages" showDetail="true" closable="true"/>
+
+            <div class="field">
+                <p:outputLabel for="name" value="Имя:"/>
+                <p:inputText id="name" value="#{bookCreatureBean.newCreature.name}" required="true" requiredMessage="Имя не может быть пустым"/>
+            </div>
+
+            <div class="field">
+                <p:outputLabel for="age" value="Возраст (> 0):"/>
+                <p:inputNumber id="age" value="#{bookCreatureBean.newCreature.age}" decimalPlaces="0" minValue="1" required="true" requiredMessage="Возраст должен быть больше 0"/>
+            </div>
+
+            <div class="field">
+                <p:outputLabel for="type" value="Тип существа:"/>
+                <p:selectOneMenu id="type" value="#{bookCreatureBean.newCreature.creatureType}">
+                    <f:selectItem itemLabel="Не выбран" itemValue="#{null}"/>
+                    <f:selectItems value="#{bookCreatureBean.creatureTypes}" var="type" itemValue="#{type}" itemLabel="#{type}"/>
+                </p:selectOneMenu>
+            </div>
+
+            <div class="field">
+                <p:outputLabel for="attack" value="Уровень атаки (> 0):"/>
+                <p:inputNumber id="attack" value="#{bookCreatureBean.newCreature.attackLevel}" minValue="0.01" required="true" requiredMessage="Уровень атаки должен быть > 0"/>
+            </div>
+
+            <div class="field">
+                <p:outputLabel for="defense" value="Уровень защиты (> 0, необязательно):"/>
+                <p:inputNumber id="defense" value="#{bookCreatureBean.newCreature.defenseLevel}" decimalPlaces="0" minValue="1"/>
+            </div>
+
+            <div class="field">
+                <p:outputLabel for="coords" value="Координаты:"/>
+                <p:selectOneMenu id="coords" value="#{bookCreatureBean.coordinatesId}" required="true" requiredMessage="Выберите координаты">
+                    <f:selectItem itemLabel="-- Выберите координаты --" itemValue="#{null}"/>
+                    <f:selectItems value="#{bookCreatureBean.coordinates}" var="coords" itemValue="#{coords.id}" itemLabel="ID #{coords.id} (X: #{coords.x}, Y: #{coords.y})"/>
+                </p:selectOneMenu>
+            </div>
+
+            <div class="field">
+                <p:outputLabel for="city" value="Город:"/>
+                <p:selectOneMenu id="city" value="#{bookCreatureBean.cityId}" required="true" requiredMessage="Выберите город">
+                    <f:selectItem itemLabel="-- Выберите город --" itemValue="#{null}"/>
+                    <f:selectItems value="#{bookCreatureBean.cities}" var="city" itemValue="#{city.id}" itemLabel="#{city.name}"/>
+                </p:selectOneMenu>
+            </div>
+
+            <div class="field">
+                <p:outputLabel for="ring" value="Кольцо:"/>
+                <p:selectOneMenu id="ring" value="#{bookCreatureBean.ringId}">
+                    <f:selectItem itemLabel="Без кольца" itemValue="#{null}"/>
+                    <f:selectItems value="#{bookCreatureBean.rings}" var="ring" itemValue="#{ring.id}" itemLabel="#{ring.name} (вес #{ring.weight})"/>
+                </p:selectOneMenu>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <p:commandButton value="Создать существо"
+                                 icon="pi pi-check"
+                                 action="#{bookCreatureBean.create}"
+                                 update="messages"
+                                 styleClass="ui-button-success"/>
+            </div>
+        </h:form>
+    </div>
 
 </h:body>
 </html>

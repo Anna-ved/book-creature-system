@@ -1,83 +1,313 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="jakarta.faces.html"
-      xmlns:f="jakarta.faces.core">
+      xmlns:f="jakarta.faces.core"
+      xmlns:p="http://primefaces.org/ui">
 
 <h:head>
-    <title>Book Creatures</title>
+    <title>Book Creatures - Главная</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 20px; background-color: #f7f9fa; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 15px; }
+        .ui-datatable thead th { background: #f1f3f5; }
+        .action-btn { margin-right: 5px; }
+    </style>
 </h:head>
 
 <h:body>
 
-    <h1>Book Creatures</h1>
+    <h:form id="menuForm">
+        <p:menubar>
+            <p:menuitem value="Список существ" outcome="index.xhtml" icon="pi pi-fw pi-users"/>
+            <p:menuitem value="Создать существо" outcome="create.xhtml" icon="pi pi-fw pi-user-plus"/>
+            <p:menuitem value="Специальные операции" outcome="special.xhtml" icon="pi pi-fw pi-bolt"/>
+            <p:menuitem value="Справочники" outcome="references.xhtml" icon="pi pi-fw pi-database"/>
+        </p:menubar>
+    </h:form>
 
-    <h:link value="Добавить вспомогательные объекты"
-            outcome="references.xhtml"/>
+    <div class="card">
+        <h2>Реестр существ (Book Creatures)</h2>
 
-    <h:link value="Создать BookCreature"
-            outcome="create.xhtml"/>
+        <f:websocket channel="creaturesPush" onmessage="function(message) { updateCreaturesTable(); }" />
 
-    <h:dataTable value="#{bookCreatureBean.creatures}"
-                 var="creature"
-                 border="1">
+        <h:form id="mainForm">
+            <p:remoteCommand name="updateCreaturesTable" update=":mainForm:creaturesTable :mainForm:growl" action="#{bookCreatureBean.loadData}" />
+            <p:growl id="growl" showDetail="true" skipDetailIfEqualsSummary="true"/>
 
-        <h:column>
-            <f:facet name="header">ID</f:facet>
-            #{creature.id}
-        </h:column>
+            <p:dataTable id="creaturesTable"
+                         value="#{bookCreatureBean.creatures}"
+                         var="creature"
+                         paginator="true"
+                         rows="10"
+                         paginatorPosition="bottom"
+                         rowsPerPageTemplate="5,10,20,50"
+                         emptyMessage="Существа не найдены"
+                         rowKey="#{creature.id}"
+                         stripedRows="true">
 
-        <h:column>
-            <f:facet name="header">Name</f:facet>
-            #{creature.name}
-        </h:column>
+                <p:column headerText="ID" sortBy="#{creature.id}" width="60">
+                    <h:outputText value="#{creature.id}"/>
+                </p:column>
 
-        <h:column>
-            <f:facet name="header">X</f:facet>
-            #{creature.coordinates.x}
-        </h:column>
+                <p:column headerText="Имя" sortBy="#{creature.name}" filterBy="#{creature.name}" filterMatchMode="exact">
+                    <h:outputText value="#{creature.name}"/>
+                </p:column>
 
-        <h:column>
-            <f:facet name="header">Y</f:facet>
-            #{creature.coordinates.y}
-        </h:column>
+                <p:column headerText="X" sortBy="#{creature.coordinates.x}" width="60">
+                    <h:outputText value="#{creature.coordinates.x}"/>
+                </p:column>
 
-        <h:column>
-            <f:facet name="header">Creation Date</f:facet>
-            #{creature.creationDate}
-        </h:column>
+                <p:column headerText="Y" sortBy="#{creature.coordinates.y}" width="60">
+                    <h:outputText value="#{creature.coordinates.y}"/>
+                </p:column>
 
-        <h:column>
-            <f:facet name="header">Age</f:facet>
-            #{creature.age}
-        </h:column>
+                <p:column headerText="Дата создания" sortBy="#{creature.creationDate}">
+                    <h:outputText value="#{creature.creationDate}"/>
+                </p:column>
 
-        <h:column>
-            <f:facet name="header">Type</f:facet>
-            #{creature.creatureType}
-        </h:column>
+                <p:column headerText="Возраст" sortBy="#{creature.age}" width="80">
+                    <h:outputText value="#{creature.age}"/>
+                </p:column>
 
-        <h:column>
-            <f:facet name="header">City</f:facet>
-            #{creature.creatureLocation.name}
-        </h:column>
+                <p:column headerText="Тип" sortBy="#{creature.creatureType}" filterBy="#{creature.creatureType}" filterMatchMode="exact">
+                    <h:outputText value="#{creature.creatureType != null ? creature.creatureType : '—'}"/>
+                </p:column>
 
-        <h:column>
-            <f:facet name="header">Attack</f:facet>
-            #{creature.attackLevel}
-        </h:column>
+                <p:column headerText="Город" sortBy="#{creature.creatureLocation.name}" filterBy="#{creature.creatureLocation.name}" filterMatchMode="exact">
+                    <h:outputText value="#{creature.creatureLocation.name}"/>
+                </p:column>
 
-        <h:column>
-            <f:facet name="header">Defense</f:facet>
-            #{creature.defenseLevel}
-        </h:column>
+                <p:column headerText="Атака" sortBy="#{creature.attackLevel}" width="80">
+                    <h:outputText value="#{creature.attackLevel}"/>
+                </p:column>
 
-        <h:column>
-            <f:facet name="header">Ring</f:facet>
-            #{creature.ring.name}
-        </h:column>
+                <p:column headerText="Защита" sortBy="#{creature.defenseLevel}" width="80">
+                    <h:outputText value="#{creature.defenseLevel != null ? creature.defenseLevel : '—'}"/>
+                </p:column>
 
-    </h:dataTable>
+                <p:column headerText="Кольцо" sortBy="#{creature.ring.name}" filterBy="#{creature.ring.name}" filterMatchMode="exact">
+                    <h:outputText value="#{creature.ring != null ? creature.ring.name : '—'}"/>
+                </p:column>
+
+                <p:column headerText="Действия" width="220" style="text-align: center;">
+                    <p:commandButton icon="pi pi-eye"
+                                     title="Просмотр"
+                                     styleClass="ui-button-info ui-button-sm action-btn"
+                                     action="#{bookCreatureBean.prepareView(creature)}"
+                                     update=":viewDialogForm"
+                                     oncomplete="PF('viewDialog').show()"/>
+
+                    <p:commandButton icon="pi pi-pencil"
+                                     title="Редактировать"
+                                     styleClass="ui-button-warning ui-button-sm action-btn"
+                                     action="#{bookCreatureBean.prepareEdit(creature)}"
+                                     update=":editDialogForm"
+                                     oncomplete="PF('editDialog').show()"/>
+
+                    <p:commandButton icon="pi pi-trash"
+                                     title="Удалить"
+                                     styleClass="ui-button-danger ui-button-sm action-btn"
+                                     action="#{bookCreatureBean.prepareDelete(creature)}"
+                                     update=":deleteDialogForm"
+                                     oncomplete="PF('deleteDialog').show()"/>
+                </p:column>
+
+            </p:dataTable>
+        </h:form>
+    </div>
+
+    <p:dialog header="Карточка существа и связанных объектов"
+              widgetVar="viewDialog"
+              modal="true"
+              width="600"
+              responsive="true"
+              dynamic="true"
+              showEffect="fade"
+              hideEffect="fade">
+        <h:form id="viewDialogForm">
+            <h:panelGroup id="viewPanel" layout="block">
+                <p:panelGrid columns="2" layout="grid" rendered="#{bookCreatureBean.selectedCreature.id != null}">
+                    <h:outputText value="ID существа:"/>
+                    <h:outputText value="#{bookCreatureBean.selectedCreature.id}" style="font-weight: bold;"/>
+
+                    <h:outputText value="Имя:"/>
+                    <h:outputText value="#{bookCreatureBean.selectedCreature.name}"/>
+
+                    <h:outputText value="Возраст:"/>
+                    <h:outputText value="#{bookCreatureBean.selectedCreature.age}"/>
+
+                    <h:outputText value="Тип существа:"/>
+                    <h:outputText value="#{bookCreatureBean.selectedCreature.creatureType != null ? bookCreatureBean.selectedCreature.creatureType : 'Не указан'}"/>
+
+                    <h:outputText value="Уровень атаки:"/>
+                    <h:outputText value="#{bookCreatureBean.selectedCreature.attackLevel}"/>
+
+                    <h:outputText value="Уровень защиты:"/>
+                    <h:outputText value="#{bookCreatureBean.selectedCreature.defenseLevel != null ? bookCreatureBean.selectedCreature.defenseLevel : 'Не указан'}"/>
+
+                    <h:outputText value="Дата создания:"/>
+                    <h:outputText value="#{bookCreatureBean.selectedCreature.creationDate}"/>
+                </p:panelGrid>
+
+                <h4 style="margin-top: 15px;">Связанные координаты:</h4>
+                <p:panelGrid columns="2" layout="grid" rendered="#{bookCreatureBean.selectedCreature.coordinates != null}">
+                    <h:outputText value="ID координат:"/>
+                    <h:outputText value="#{bookCreatureBean.selectedCreature.coordinates.id}"/>
+                    <h:outputText value="Координата X (макс. 161):"/>
+                    <h:outputText value="#{bookCreatureBean.selectedCreature.coordinates.x}"/>
+                    <h:outputText value="Координата Y:"/>
+                    <h:outputText value="#{bookCreatureBean.selectedCreature.coordinates.y}"/>
+                </p:panelGrid>
+
+                <h4 style="margin-top: 15px;">Связанный город:</h4>
+                <p:panelGrid columns="2" layout="grid" rendered="#{bookCreatureBean.selectedCreature.creatureLocation != null}">
+                    <h:outputText value="ID города:"/>
+                    <h:outputText value="#{bookCreatureBean.selectedCreature.creatureLocation.id}"/>
+                    <h:outputText value="Название:"/>
+                    <h:outputText value="#{bookCreatureBean.selectedCreature.creatureLocation.name}"/>
+                    <h:outputText value="Площадь:"/>
+                    <h:outputText value="#{bookCreatureBean.selectedCreature.creatureLocation.area}"/>
+                    <h:outputText value="Население:"/>
+                    <h:outputText value="#{bookCreatureBean.selectedCreature.creatureLocation.population}"/>
+                    <h:outputText value="Дата основания:"/>
+                    <h:outputText value="#{bookCreatureBean.selectedCreature.creatureLocation.establishmentDate != null ? bookCreatureBean.selectedCreature.creatureLocation.establishmentDate : 'Не указана'}"/>
+                    <h:outputText value="Губернатор:"/>
+                    <h:outputText value="#{bookCreatureBean.selectedCreature.creatureLocation.governor != null ? bookCreatureBean.selectedCreature.creatureLocation.governor : 'Не назначен'}"/>
+                    <h:outputText value="Столица:"/>
+                    <h:outputText value="#{bookCreatureBean.selectedCreature.creatureLocation.capital ? 'Да' : 'Нет'}"/>
+                    <h:outputText value="Плотность населения:"/>
+                    <h:outputText value="#{bookCreatureBean.selectedCreature.creatureLocation.populationDensity}"/>
+                </p:panelGrid>
+
+                <h4 style="margin-top: 15px;">Связанное кольцо:</h4>
+                <p:panelGrid columns="2" layout="grid">
+                    <h:outputText value="Информация:"/>
+                    <h:outputText value="#{bookCreatureBean.selectedCreature.ring != null ? (bookCreatureBean.selectedCreature.ring.name.concat(' (Вес: ').concat(bookCreatureBean.selectedCreature.ring.weight).concat(')')) : 'Кольцо отсутствует'}"/>
+                </p:panelGrid>
+
+                <div style="margin-top: 15px; text-align: right;">
+                    <p:commandButton value="Редактировать"
+                                     icon="pi pi-pencil"
+                                     styleClass="ui-button-warning action-btn"
+                                     action="#{bookCreatureBean.prepareEdit(bookCreatureBean.selectedCreature)}"
+                                     update=":editDialogForm"
+                                     oncomplete="PF('viewDialog').hide(); PF('editDialog').show();"/>
+                    <p:commandButton value="Закрыть" onclick="PF('viewDialog').hide();" type="button" styleClass="ui-button-secondary"/>
+                </div>
+            </h:panelGroup>
+        </h:form>
+    </p:dialog>
+
+    <p:dialog header="Модификация существа"
+              widgetVar="editDialog"
+              modal="true"
+              width="500"
+              responsive="true"
+              dynamic="true"
+              showEffect="fade"
+              hideEffect="fade">
+        <h:form id="editDialogForm">
+            <p:messages id="editMessages" showDetail="true" closable="true"/>
+
+            <h:panelGroup id="editPanel" layout="block" styleClass="ui-fluid">
+                <div class="field" style="margin-bottom: 10px;">
+                    <p:outputLabel for="editName" value="Имя:"/>
+                    <p:inputText id="editName" value="#{bookCreatureBean.editingCreature.name}" required="true" requiredMessage="Имя обязательно для заполнения"/>
+                </div>
+
+                <div class="field" style="margin-bottom: 10px;">
+                    <p:outputLabel for="editAge" value="Возраст (> 0):"/>
+                    <p:inputNumber id="editAge" value="#{bookCreatureBean.editingCreature.age}" decimalPlaces="0" minValue="1" required="true" requiredMessage="Возраст должен быть больше 0"/>
+                </div>
+
+                <div class="field" style="margin-bottom: 10px;">
+                    <p:outputLabel for="editType" value="Тип существа:"/>
+                    <p:selectOneMenu id="editType" value="#{bookCreatureBean.editingCreature.creatureType}">
+                        <f:selectItem itemLabel="Не выбран" itemValue="#{null}"/>
+                        <f:selectItems value="#{bookCreatureBean.creatureTypes}" var="t" itemValue="#{t}" itemLabel="#{t}"/>
+                    </p:selectOneMenu>
+                </div>
+
+                <div class="field" style="margin-bottom: 10px;">
+                    <p:outputLabel for="editAttack" value="Уровень атаки (> 0):"/>
+                    <p:inputNumber id="editAttack" value="#{bookCreatureBean.editingCreature.attackLevel}" minValue="0.01" required="true" requiredMessage="Уровень атаки должен быть > 0"/>
+                </div>
+
+                <div class="field" style="margin-bottom: 10px;">
+                    <p:outputLabel for="editDefense" value="Уровень защиты (> 0):"/>
+                    <p:inputNumber id="editDefense" value="#{bookCreatureBean.editingCreature.defenseLevel}" decimalPlaces="0" minValue="1"/>
+                </div>
+
+                <div class="field" style="margin-bottom: 10px;">
+                    <p:outputLabel for="editCoord" value="Координаты:"/>
+                    <p:selectOneMenu id="editCoord" value="#{bookCreatureBean.editCoordinatesId}" required="true" requiredMessage="Координаты обязательны">
+                        <f:selectItems value="#{bookCreatureBean.coordinates}" var="c" itemValue="#{c.id}" itemLabel="ID #{c.id} (X: #{c.x}, Y: #{c.y})"/>
+                    </p:selectOneMenu>
+                </div>
+
+                <div class="field" style="margin-bottom: 10px;">
+                    <p:outputLabel for="editCity" value="Город:"/>
+                    <p:selectOneMenu id="editCity" value="#{bookCreatureBean.editCityId}" required="true" requiredMessage="Город обязателен">
+                        <f:selectItems value="#{bookCreatureBean.cities}" var="ct" itemValue="#{ct.id}" itemLabel="#{ct.name}"/>
+                    </p:selectOneMenu>
+                </div>
+
+                <div class="field" style="margin-bottom: 10px;">
+                    <p:outputLabel for="editRing" value="Кольцо:"/>
+                    <p:selectOneMenu id="editRing" value="#{bookCreatureBean.editRingId}">
+                        <f:selectItem itemLabel="Без кольца" itemValue="#{null}"/>
+                        <f:selectItems value="#{bookCreatureBean.rings}" var="r" itemValue="#{r.id}" itemLabel="#{r.name} (вес #{r.weight})"/>
+                    </p:selectOneMenu>
+                </div>
+
+                <div style="margin-top: 15px; text-align: right;">
+                    <p:commandButton value="Сохранить"
+                                     icon="pi pi-check"
+                                     action="#{bookCreatureBean.update}"
+                                     update="editMessages :mainForm:creaturesTable :mainForm:growl"
+                                     styleClass="ui-button-success action-btn"/>
+                    <p:commandButton value="Отмена" onclick="PF('editDialog').hide();" type="button" styleClass="ui-button-secondary"/>
+                </div>
+            </h:panelGroup>
+        </h:form>
+    </p:dialog>
+
+    <p:dialog header="Удаление существа"
+              widgetVar="deleteDialog"
+              modal="true"
+              width="450"
+              responsive="true"
+              dynamic="true"
+              showEffect="fade"
+              hideEffect="fade">
+        <h:form id="deleteDialogForm">
+            <p:messages id="delMessages" showDetail="true" closable="true"/>
+
+            <p>Вы действительно хотите удалить существо <strong>#{bookCreatureBean.creatureToDelete.name}</strong> (ID: #{bookCreatureBean.creatureToDelete.id})?</p>
+
+            <div style="margin: 15px 0;">
+                <p:outputLabel for="reassignSelect"
+                               value="Кому передать связанные объекты (кольцо):"
+                               style="font-weight: bold; display: block; margin-bottom: 5px;"/>
+                <p:selectOneMenu id="reassignSelect" value="#{bookCreatureBean.reassignTargetId}" style="width: 100%;">
+                    <f:selectItem itemLabel="-- Не передавать другому существу --" itemValue="#{null}"/>
+                    <f:selectItems value="#{bookCreatureBean.reassignCandidates}"
+                                   var="cand"
+                                   itemValue="#{cand.id}"
+                                   itemLabel="ID #{cand.id}: #{cand.name}"/>
+                </p:selectOneMenu>
+            </div>
+
+            <div style="text-align: right; margin-top: 15px;">
+                <p:commandButton value="Удалить"
+                                 icon="pi pi-trash"
+                                 action="#{bookCreatureBean.confirmDelete}"
+                                 update="delMessages :mainForm:creaturesTable :mainForm:growl"
+                                 styleClass="ui-button-danger action-btn"/>
+                <p:commandButton value="Отмена" onclick="PF('deleteDialog').hide();" type="button" styleClass="ui-button-secondary"/>
+            </div>
+        </h:form>
+    </p:dialog>
 
 </h:body>
-
 </html>

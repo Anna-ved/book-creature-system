@@ -7,7 +7,7 @@ import jakarta.persistence.EntityManager;
 import java.util.List;
 
 @ApplicationScoped
-public class RingRepo extends BaseRepo<Ring> {
+public class RingRepo extends BaseRepo<Ring, Long> {
 
     public RingRepo() {
         super(Ring.class);

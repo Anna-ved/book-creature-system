@@ -6,31 +6,21 @@
     <persistence-unit name="bookCreaturePU" transaction-type="RESOURCE_LOCAL">
 
         <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+        <non-jta-data-source>jdbc/BookCreature</non-jta-data-source>
 
         <class>by.rozze.bookcreaturesystem.entity.BookCreature</class>
         <class>by.rozze.bookcreaturesystem.entity.Coordinates</class>
         <class>by.rozze.bookcreaturesystem.entity.MagicCity</class>
         <class>by.rozze.bookcreaturesystem.entity.Ring</class>
 
+        <shared-cache-mode>NONE</shared-cache-mode>
+
         <properties>
-
-            <property name="jakarta.persistence.jdbc.driver"
-                      value="org.postgresql.Driver"/>
-
-            <property name="jakarta.persistence.jdbc.url"
-                      value="jdbc:postgresql://pg:5432/studs?currentSchema=s471800"/>
-
-            <property name="jakarta.persistence.jdbc.user"
-                      value="s471800"/>
-
-            <property name="jakarta.persistence.jdbc.password"
-                      value=""/>
-
             <property name="eclipselink.logging.level"
                       value="FINE"/>
 
             <property name="eclipselink.ddl-generation"
-                      value="create-or-extend-tables"/>
+                      value="none"/>
 
         </properties>
 

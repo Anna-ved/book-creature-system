@@ -30,26 +30,19 @@ public class SpecialOperationsBean implements Serializable {
     @Push(channel = "creaturesPush")
     private PushContext pushContext;
 
-    // Операция 1: Средний attackLevel
     private Double avgAttackLevel;
-
-    // Операция 2: Группировка по attackLevel
     private List<AttackGroupDto> attackGroups = new ArrayList<>();
 
-    // Операция 3: Количество существ с весом кольца меньше заданного
     private Float ringWeightThreshold;
     private Long countRingLessThan;
 
-    // Операция 4: Персонаж с самым сильным кольцом
     private StrongestRingDto strongestRingCreature;
 
-    // Операция 5: Уничтожить города эльфов
     private Integer destroyedCitiesCount;
 
     public void runAvgAttackLevel() {
         try {
             avgAttackLevel = service.calculateAvgAttackLevel();
-            addInfoMessage("Средний уровень атаки рассчитан: " + String.format("%.2f", avgAttackLevel));
         } catch (Exception e) {
             addErrorMessage("Ошибка расчета среднего уровня атаки: " + e.getMessage());
         }
@@ -64,20 +57,22 @@ public class SpecialOperationsBean implements Serializable {
                 Long count = row[1] != null ? ((Number) row[1]).longValue() : 0L;
                 attackGroups.add(new AttackGroupDto(attack, count));
             }
-            addInfoMessage("Группировка успешно выполнена (групп: " + attackGroups.size() + ")");
+            if (attackGroups.isEmpty()) {
+                addInfoMessage("Нет существ для группировки.");
+            }
         } catch (Exception e) {
             addErrorMessage("Ошибка группировки по атаке: " + e.getMessage());
         }
     }
 
     public void runCountRingLessThan() {
+        countRingLessThan = null;
         try {
             if (ringWeightThreshold == null) {
                 addErrorMessage("Укажите пороговый вес кольца");
                 return;
             }
             countRingLessThan = service.countCreaturesByRingWeightLessThan(ringWeightThreshold);
-            addInfoMessage("Найдено существ: " + countRingLessThan);
         } catch (Exception e) {
             addErrorMessage("Ошибка подсчета: " + e.getMessage());
         }
@@ -93,7 +88,6 @@ public class SpecialOperationsBean implements Serializable {
                 String ringName = row[3] != null ? (String) row[3] : "";
                 Float ringWeight = row[4] != null ? ((Number) row[4]).floatValue() : 0.0f;
                 strongestRingCreature = new StrongestRingDto(id, name, age, ringName, ringWeight);
-                addInfoMessage("Персонаж найден: " + name);
             } else {
                 strongestRingCreature = null;
                 addInfoMessage("Персонажи с кольцами не найдены");
@@ -105,8 +99,16 @@ public class SpecialOperationsBean implements Serializable {
 
     public void runDestroyElfCities() {
         try {
+            destroyedCitiesCount = null;
             destroyedCitiesCount = service.destroyElfCities();
-            addInfoMessage("Уничтожено городов эльфов: " + destroyedCitiesCount);
+
+            if (destroyedCitiesCount == null) {
+                addErrorMessage(
+                        "Есть жители, которых некуда переселить. "
+                                + "Сначала добавьте город, которым не правит эльф."
+                );
+                return;
+            }
             if (pushContext != null) {
                 pushContext.send("update");
             }

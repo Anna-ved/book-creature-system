@@ -20,9 +20,7 @@ import lombok.Setter;
 import org.primefaces.PrimeFaces;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Named
 @ViewScoped
@@ -58,7 +56,8 @@ public class BookCreatureBean implements Serializable {
     private Long editCityId;
     private Long editRingId;
 
-    private Long reassignTargetId;
+    private Integer reassignTargetId;
+    private List<BookCreature> reassignCandidates = List.of();
 
     @PostConstruct
     public void init() {
@@ -143,6 +142,14 @@ public class BookCreatureBean implements Serializable {
     public void prepareDelete(BookCreature creature) {
         this.creatureToDelete = creature;
         this.reassignTargetId = null;
+        reassignCandidates = List.of();
+
+        if (creature != null && creature.getRing() != null) {
+            reassignCandidates = creatures.stream()
+                    .filter(c -> !c.getId().equals(creature.getId()))
+                    .filter(c -> c.getRing() == null)
+                    .toList();
+        }
     }
 
     public void confirmDelete() {
@@ -157,18 +164,9 @@ public class BookCreatureBean implements Serializable {
                         new FacesMessage(FacesMessage.SEVERITY_INFO, "Существо удалено", null));
             }
         } catch (Exception e) {
-            FacesContext.getCurrentInstance().addMessage(null,
+            FacesContext.getCurrentInstance().addMessage("deleteDialogForm:deleteButton",
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Ошибка удаления: " + e.getMessage(), null));
         }
-    }
-
-    public List<BookCreature> getReassignCandidates() {
-        if (creatures == null || creatureToDelete == null) {
-            return creatures != null ? creatures : new ArrayList<>();
-        }
-        return creatures.stream()
-                .filter(c -> !c.getId().equals(creatureToDelete.getId()))
-                .collect(Collectors.toList());
     }
 
     private void notifyClients() {
@@ -178,5 +176,19 @@ public class BookCreatureBean implements Serializable {
             }
         } catch (Exception ignored) {
         }
+    }
+
+    public void refreshCreatureViews() {
+        loadData();
+
+        if (selectedCreature == null || selectedCreature.getId() == null) {
+            return;
+        }
+
+        Integer selectedId = selectedCreature.getId();
+        selectedCreature = creatures.stream()
+                .filter(creature -> selectedId.equals(creature.getId()))
+                .findFirst()
+                .orElse(null);
     }
 }

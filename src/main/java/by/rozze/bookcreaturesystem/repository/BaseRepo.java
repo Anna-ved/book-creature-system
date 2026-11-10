@@ -2,12 +2,12 @@ package by.rozze.bookcreaturesystem.repository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
+import jakarta.persistence.PersistenceUnit;
 
-public abstract class BaseRepo<T> {
+public abstract class BaseRepo<T, ID> {
 
-    protected final EntityManagerFactory managerFactory =
-            Persistence.createEntityManagerFactory("bookCreaturePU");
+    @PersistenceUnit(unitName = "bookCreaturePU")
+    protected EntityManagerFactory managerFactory;
 
     private final Class<T> entityClass;
 
@@ -34,7 +34,7 @@ public abstract class BaseRepo<T> {
         }
     }
 
-    public T findById(Long id) {
+    public T findById(ID id) {
         EntityManager entityManager = managerFactory.createEntityManager();
 
         try {

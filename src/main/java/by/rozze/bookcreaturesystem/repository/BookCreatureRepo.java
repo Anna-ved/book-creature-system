@@ -1,14 +1,14 @@
 package by.rozze.bookcreaturesystem.repository;
 
 import by.rozze.bookcreaturesystem.entity.BookCreature;
+import by.rozze.bookcreaturesystem.entity.Ring;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 
-import java.util.Collections;
 import java.util.List;
 
 @ApplicationScoped
-public class BookCreatureRepo extends BaseRepo<BookCreature> {
+public class BookCreatureRepo extends BaseRepo<BookCreature, Integer> {
 
     public BookCreatureRepo() {
         super(BookCreature.class);
@@ -29,7 +29,7 @@ public class BookCreatureRepo extends BaseRepo<BookCreature> {
         }
     }
 
-    public BookCreature findByIdWithRelations(Long id) {
+    public BookCreature findByIdWithRelations(Integer id) {
         EntityManager entityManager = managerFactory.createEntityManager();
         try {
             List<BookCreature> list = entityManager.createQuery(
@@ -46,11 +46,11 @@ public class BookCreatureRepo extends BaseRepo<BookCreature> {
         }
     }
 
-    public boolean deleteById(Long id) {
+    public boolean deleteById(Integer id) {
         return deleteWithReassignment(id, null);
     }
 
-    public boolean deleteWithReassignment(Long creatureToDeleteId, Long targetCreatureId) {
+    public boolean deleteWithReassignment(Integer creatureToDeleteId, Integer targetCreatureId) {
         EntityManager entityManager = managerFactory.createEntityManager();
         try {
             entityManager.getTransaction().begin();
@@ -61,17 +61,34 @@ public class BookCreatureRepo extends BaseRepo<BookCreature> {
                 return false;
             }
 
-            if (targetCreatureId != null) {
-                BookCreature target = entityManager.find(BookCreature.class, targetCreatureId);
-                if (target != null) {
-                    if (toDelete.getRing() != null) {
-                        target.setRing(toDelete.getRing());
-                    }
-                    entityManager.merge(target);
-                }
+            Ring ring = toDelete.getRing();
+
+            if (ring != null && targetCreatureId == null) {
+                throw new IllegalArgumentException("Выберите, кому передать кольцо.");
             }
 
-            toDelete.setRing(null);
+            if (targetCreatureId != null) {
+                if (ring == null) {
+                    throw new IllegalArgumentException(
+                            "У существа больше нет кольца. Откройте удаление заново.");
+                }
+                if (creatureToDeleteId.equals(targetCreatureId)) {
+                    throw new IllegalArgumentException("Выберите другое существо.");
+                }
+
+                BookCreature target = entityManager.find(BookCreature.class, targetCreatureId);
+
+                if (target == null) {
+                    throw new IllegalArgumentException(
+                            "Получателя уже удалили. Выберите другое существо.");
+                }
+                if (target.getRing() != null) {
+                    throw new IllegalArgumentException(
+                            "У получателя уже есть кольцо. Выберите другое существо.");
+                }
+
+                target.setRing(ring);
+            }
             entityManager.remove(toDelete);
             entityManager.getTransaction().commit();
             return true;
@@ -151,7 +168,7 @@ public class BookCreatureRepo extends BaseRepo<BookCreature> {
             entityManager.getTransaction().begin();
             Object result = entityManager.createNativeQuery("SELECT destroy_elf_cities()").getSingleResult();
             entityManager.getTransaction().commit();
-            return result != null ? ((Number) result).intValue() : 0;
+            return result == null ? null : ((Number) result).intValue();
         } catch (RuntimeException e) {
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();

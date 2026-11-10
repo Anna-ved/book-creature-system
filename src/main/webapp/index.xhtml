@@ -22,21 +22,32 @@
             <p:menuitem value="Создать существо" outcome="create.xhtml" icon="pi pi-fw pi-user-plus"/>
             <p:menuitem value="Специальные операции" outcome="special.xhtml" icon="pi pi-fw pi-bolt"/>
             <p:menuitem value="Справочники" outcome="references.xhtml" icon="pi pi-fw pi-database"/>
+            <p:submenu label="Вход: #{request.remoteUser}" icon="pi pi-user">
+                <p:menuitem value="Выйти"
+                            action="#{sessionBean.logout}"
+                            ajax="false"
+                            icon="pi pi-sign-out"/>
+            </p:submenu>
         </p:menubar>
     </h:form>
 
     <div class="card">
         <h2>Реестр существ (Book Creatures)</h2>
 
-        <f:websocket channel="creaturesPush" onmessage="function(message) { updateCreaturesTable(); }" />
-
+        <f:websocket channel="creaturesPush"
+                     onmessage="function(message) { refreshCreatureViews(); }"/>
         <h:form id="mainForm">
-            <p:remoteCommand name="updateCreaturesTable" update=":mainForm:creaturesTable :mainForm:growl" action="#{bookCreatureBean.loadData}" />
-            <p:growl id="growl" showDetail="true" skipDetailIfEqualsSummary="true"/>
+            <p:remoteCommand name="refreshCreatureViews"
+                             process="@this"
+                             update=":mainForm:creaturesTable :viewDialogForm:viewPanel"
+                             action="#{bookCreatureBean.refreshCreatureViews}"/>
+            <p:growl id="growl" globalOnly="true" severity="info"
+                     showDetail="false" life="3500"/>
 
             <p:dataTable id="creaturesTable"
                          value="#{bookCreatureBean.creatures}"
                          var="creature"
+                         widgetVar="creaturesTableWidget"
                          paginator="true"
                          rows="10"
                          paginatorPosition="bottom"
@@ -49,7 +60,7 @@
                     <h:outputText value="#{creature.id}"/>
                 </p:column>
 
-                <p:column headerText="Имя" sortBy="#{creature.name}" filterBy="#{creature.name}" filterMatchMode="exact">
+                <p:column headerText="Имя" sortBy="#{creature.name}" filterBy="#{creature.name}" filterMatchMode="exact" filterPlaceholder="Название">
                     <h:outputText value="#{creature.name}"/>
                 </p:column>
 
@@ -69,11 +80,27 @@
                     <h:outputText value="#{creature.age}"/>
                 </p:column>
 
-                <p:column headerText="Тип" sortBy="#{creature.creatureType}" filterBy="#{creature.creatureType}" filterMatchMode="exact">
+                <p:column headerText="Тип"
+                          sortBy="#{creature.creatureType}"
+                          filterBy="#{creature.creatureType}"
+                          filterMatchMode="exact">
+                    <f:facet name="filter">
+                        <p:selectOneMenu id="typeFilter"
+                                         onchange="PF('creaturesTableWidget').filter()">
+                            <f:selectItem itemLabel="Все типы"
+                                          itemValue="#{null}"
+                                          noSelectionOption="true"/>
+                            <f:selectItems value="#{bookCreatureBean.creatureTypes}"
+                                           var="type"
+                                           itemLabel="#{type.name()}"
+                                           itemValue="#{type.name()}"/>
+                        </p:selectOneMenu>
+                    </f:facet>
+
                     <h:outputText value="#{creature.creatureType != null ? creature.creatureType : '—'}"/>
                 </p:column>
 
-                <p:column headerText="Город" sortBy="#{creature.creatureLocation.name}" filterBy="#{creature.creatureLocation.name}" filterMatchMode="exact">
+                <p:column headerText="Город" sortBy="#{creature.creatureLocation.name}" filterBy="#{creature.creatureLocation.name}" filterMatchMode="exact" filterPlaceholder="Название">
                     <h:outputText value="#{creature.creatureLocation.name}"/>
                 </p:column>
 
@@ -85,7 +112,7 @@
                     <h:outputText value="#{creature.defenseLevel != null ? creature.defenseLevel : '—'}"/>
                 </p:column>
 
-                <p:column headerText="Кольцо" sortBy="#{creature.ring.name}" filterBy="#{creature.ring.name}" filterMatchMode="exact">
+                <p:column headerText="Кольцо" sortBy="#{creature.ring.name}" filterPlaceholder="Название" filterBy="#{creature.ring.name}" filterMatchMode="exact">
                     <h:outputText value="#{creature.ring != null ? creature.ring.name : '—'}"/>
                 </p:column>
 
@@ -108,6 +135,7 @@
                                      title="Удалить"
                                      styleClass="ui-button-danger ui-button-sm action-btn"
                                      action="#{bookCreatureBean.prepareDelete(creature)}"
+                                     resetValues="true"
                                      update=":deleteDialogForm"
                                      oncomplete="PF('deleteDialog').show()"/>
                 </p:column>
@@ -121,6 +149,7 @@
               modal="true"
               width="600"
               responsive="true"
+              fitViewport="true"
               dynamic="true"
               showEffect="fade"
               hideEffect="fade">
@@ -207,17 +236,30 @@
               showEffect="fade"
               hideEffect="fade">
         <h:form id="editDialogForm">
-            <p:messages id="editMessages" showDetail="true" closable="true"/>
+
+            <p:messages id="editMessages" globalOnly="true" severity="warn,error,fatal"
+                        showDetail="false" closable="true"/>
 
             <h:panelGroup id="editPanel" layout="block" styleClass="ui-fluid">
                 <div class="field" style="margin-bottom: 10px;">
                     <p:outputLabel for="editName" value="Имя:"/>
                     <p:inputText id="editName" value="#{bookCreatureBean.editingCreature.name}" required="true" requiredMessage="Имя обязательно для заполнения"/>
+                    <p:message for="editName" display="text" showSummary="true" showDetail="false"/>
                 </div>
 
                 <div class="field" style="margin-bottom: 10px;">
                     <p:outputLabel for="editAge" value="Возраст (> 0):"/>
-                    <p:inputNumber id="editAge" value="#{bookCreatureBean.editingCreature.age}" decimalPlaces="0" minValue="1" required="true" requiredMessage="Возраст должен быть больше 0"/>
+                    <p:inputText id="editAge"
+                                 value="#{bookCreatureBean.editingCreature.age}"
+                                 required="true"
+                                 requiredMessage="Укажите возраст."
+                                 converterMessage="Введите возраст целым числом, например 33."
+                                 validatorMessage="Возраст должен быть не меньше 1.">
+                        <f:converter converterId="jakarta.faces.Integer"/>
+                        <f:validateLongRange minimum="1"/>
+                        <f:validateBean disabled="true"/>
+                    </p:inputText>
+                    <p:message for="editAge" display="text" showSummary="true" showDetail="false"/>
                 </div>
 
                 <div class="field" style="margin-bottom: 10px;">
@@ -226,16 +268,28 @@
                         <f:selectItem itemLabel="Не выбран" itemValue="#{null}"/>
                         <f:selectItems value="#{bookCreatureBean.creatureTypes}" var="t" itemValue="#{t}" itemLabel="#{t}"/>
                     </p:selectOneMenu>
+                    <p:message for="editType" display="text" showSummary="true" showDetail="false"/>
                 </div>
 
                 <div class="field" style="margin-bottom: 10px;">
                     <p:outputLabel for="editAttack" value="Уровень атаки (> 0):"/>
-                    <p:inputNumber id="editAttack" value="#{bookCreatureBean.editingCreature.attackLevel}" minValue="0.01" required="true" requiredMessage="Уровень атаки должен быть > 0"/>
+                    <p:inputText id="editAttack"
+                                 value="#{bookCreatureBean.editingCreature.attackLevel}"
+                                 required="true"
+                                 requiredMessage="Укажите уровень атаки."
+                                 converterMessage="Введите число, например 0.001."
+                                 validatorMessage="Уровень атаки должен быть больше нуля.">
+                        <f:converter converterId="jakarta.faces.Float"/>
+                        <f:validator validatorId="positiveAttackLevel"/>
+                        <f:validateBean disabled="true"/>
+                    </p:inputText>
+                    <p:message for="editAttack" display="text" showSummary="true" showDetail="false"/>
                 </div>
 
                 <div class="field" style="margin-bottom: 10px;">
                     <p:outputLabel for="editDefense" value="Уровень защиты (> 0):"/>
                     <p:inputNumber id="editDefense" value="#{bookCreatureBean.editingCreature.defenseLevel}" decimalPlaces="0" minValue="1"/>
+                    <p:message for="editDefense" display="text" showSummary="true" showDetail="false"/>
                 </div>
 
                 <div class="field" style="margin-bottom: 10px;">
@@ -243,6 +297,7 @@
                     <p:selectOneMenu id="editCoord" value="#{bookCreatureBean.editCoordinatesId}" required="true" requiredMessage="Координаты обязательны">
                         <f:selectItems value="#{bookCreatureBean.coordinates}" var="c" itemValue="#{c.id}" itemLabel="ID #{c.id} (X: #{c.x}, Y: #{c.y})"/>
                     </p:selectOneMenu>
+                    <p:message for="editCoord" display="text" showSummary="true" showDetail="false"/>
                 </div>
 
                 <div class="field" style="margin-bottom: 10px;">
@@ -250,6 +305,7 @@
                     <p:selectOneMenu id="editCity" value="#{bookCreatureBean.editCityId}" required="true" requiredMessage="Город обязателен">
                         <f:selectItems value="#{bookCreatureBean.cities}" var="ct" itemValue="#{ct.id}" itemLabel="#{ct.name}"/>
                     </p:selectOneMenu>
+                    <p:message for="editCity" display="text" showSummary="true" showDetail="false"/>
                 </div>
 
                 <div class="field" style="margin-bottom: 10px;">
@@ -258,13 +314,14 @@
                         <f:selectItem itemLabel="Без кольца" itemValue="#{null}"/>
                         <f:selectItems value="#{bookCreatureBean.rings}" var="r" itemValue="#{r.id}" itemLabel="#{r.name} (вес #{r.weight})"/>
                     </p:selectOneMenu>
+                    <p:message for="editRing" display="text" showSummary="true" showDetail="false"/>
                 </div>
 
                 <div style="margin-top: 15px; text-align: right;">
                     <p:commandButton value="Сохранить"
                                      icon="pi pi-check"
                                      action="#{bookCreatureBean.update}"
-                                     update="editMessages :mainForm:creaturesTable :mainForm:growl"
+                                     update="@form :mainForm:creaturesTable :mainForm:growl"
                                      styleClass="ui-button-success action-btn"/>
                     <p:commandButton value="Отмена" onclick="PF('editDialog').hide();" type="button" styleClass="ui-button-secondary"/>
                 </div>
@@ -281,25 +338,37 @@
               showEffect="fade"
               hideEffect="fade">
         <h:form id="deleteDialogForm">
-            <p:messages id="delMessages" showDetail="true" closable="true"/>
+            <p:messages id="delMessages" severity="warn,error,fatal"
+                        showDetail="false" closable="true"/>
 
             <p>Вы действительно хотите удалить существо <strong>#{bookCreatureBean.creatureToDelete.name}</strong> (ID: #{bookCreatureBean.creatureToDelete.id})?</p>
 
-            <div style="margin: 15px 0;">
-                <p:outputLabel for="reassignSelect"
-                               value="Кому передать связанные объекты (кольцо):"
+            <h:panelGroup layout="block"
+                          rendered="#{not empty bookCreatureBean.creatureToDelete.ring}"
+                          style="margin: 15px 0;">
+                <p:outputLabel for="reassignSelect" value="Кому передать кольцо?"
                                style="font-weight: bold; display: block; margin-bottom: 5px;"/>
-                <p:selectOneMenu id="reassignSelect" value="#{bookCreatureBean.reassignTargetId}" style="width: 100%;">
-                    <f:selectItem itemLabel="-- Не передавать другому существу --" itemValue="#{null}"/>
+
+                <p:selectOneMenu id="reassignSelect"
+                                 value="#{bookCreatureBean.reassignTargetId}"
+                                 required="true"
+                                 requiredMessage="Выберите, кому передать кольцо."
+                                 style="width: 100%;">
+                    <f:selectItem itemLabel="Выберите получателя" noSelectionOption="true"/>
                     <f:selectItems value="#{bookCreatureBean.reassignCandidates}"
                                    var="cand"
                                    itemValue="#{cand.id}"
                                    itemLabel="ID #{cand.id}: #{cand.name}"/>
                 </p:selectOneMenu>
-            </div>
+
+                <h:outputText rendered="#{empty bookCreatureBean.reassignCandidates}"
+                              value="Нет получателей без кольца. Закройте окно и добавьте существо без кольца."/>
+            </h:panelGroup>
 
             <div style="text-align: right; margin-top: 15px;">
-                <p:commandButton value="Удалить"
+                <p:commandButton id="deleteButton"
+                                 process="@form"
+                                 value="Удалить"
                                  icon="pi pi-trash"
                                  action="#{bookCreatureBean.confirmDelete}"
                                  update="delMessages :mainForm:creaturesTable :mainForm:growl"

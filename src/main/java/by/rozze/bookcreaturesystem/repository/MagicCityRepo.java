@@ -7,7 +7,7 @@ import jakarta.persistence.EntityManager;
 import java.util.List;
 
 @ApplicationScoped
-public class MagicCityRepo extends BaseRepo<MagicCity> {
+public class MagicCityRepo extends BaseRepo<MagicCity, Long> {
 
     public MagicCityRepo() {
         super(MagicCity.class);

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Вход в BookCreature</title>
+    <style>
+        body { margin: 0; background: #f7f9fa; font: 1rem system-ui, sans-serif; }
+        main { max-width: 24rem; margin: 10vh auto; padding: 1.5rem; background: white; border-radius: 8px; }
+        form { display: grid; gap: .75rem; }
+        input, button { padding: .6rem; font: inherit; }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Вход в BookCreature</h1>
+    <form action="j_security_check" method="post">
+        <label for="username">Имя пользователя</label>
+        <input id="username" name="j_username" autocomplete="username" required>
+
+        <label for="password">Пароль</label>
+        <input id="password" name="j_password" type="password"
+               autocomplete="current-password" required>
+
+        <button type="submit">Войти</button>
+    </form>
+</main>
+</body>
+</html>

@@ -11,15 +11,23 @@ CREATE TABLE IF NOT EXISTS magic_city (
                                           establishment_date DATE,
                                           governor VARCHAR(50),
                                           capital BOOLEAN NOT NULL,
-                                          population_density DOUBLE PRECISION NOT NULL CHECK (population_density > 0)
+                                          population_density DOUBLE PRECISION NOT NULL CHECK (population_density > 0),
+                                          CONSTRAINT magic_city_governor_allowed
+                                              CHECK (governor IN ('HOBBIT', 'ELF', 'GOLLUM')),
+                                          CONSTRAINT magic_city_area_finite
+                                              CHECK (area < 'Infinity'::double precision),
+                                          CONSTRAINT magic_city_density_finite
+                                              CHECK (population_density < 'Infinity'::double precision)
 );
 CREATE TABLE IF NOT EXISTS ring (
                                     id BIGSERIAL PRIMARY KEY,
                                     name VARCHAR(255) NOT NULL CHECK (length(trim(name)) > 0),
-                                    weight REAL NOT NULL CHECK (weight > 0)
+                                    weight REAL NOT NULL CHECK (weight > 0),
+                                    CONSTRAINT ring_weight_finite
+                                        CHECK (weight < 'Infinity'::double precision)
 );
 CREATE TABLE IF NOT EXISTS book_creature (
-                                             id BIGSERIAL PRIMARY KEY,
+                                             id SERIAL PRIMARY KEY,
                                              name VARCHAR(255) NOT NULL CHECK (length(trim(name)) > 0),
                                              coordinates_id BIGINT NOT NULL REFERENCES coordinates(id) ON DELETE RESTRICT,
                                              creation_date DATE NOT NULL DEFAULT CURRENT_DATE,
@@ -29,7 +37,12 @@ CREATE TABLE IF NOT EXISTS book_creature (
                                              attack_level REAL NOT NULL CHECK (attack_level > 0),
                                              defense_level INTEGER CHECK (defense_level IS NULL OR defense_level > 0),
                                              ring_id BIGINT REFERENCES ring(id) ON DELETE SET NULL,
-                                             version BIGINT NOT NULL DEFAULT 0
+                                             version BIGINT NOT NULL DEFAULT 0,
+                                             CONSTRAINT book_creature_id_positive CHECK (id > 0),
+                                             CONSTRAINT book_creature_type_allowed
+                                                 CHECK (creature_type IN ('HOBBIT', 'ELF', 'GOLLUM')),
+                                             CONSTRAINT book_creature_attack_finite
+                                                 CHECK (attack_level < 'Infinity'::double precision)
 );
 
 
@@ -76,7 +89,7 @@ RETURNS TABLE(
 ) AS $$
 BEGIN
 RETURN QUERY
-SELECT b.id, b.name, b.age, r.name, r.weight
+SELECT b.id::bigint, b.name, b.age, r.name, r.weight
 FROM book_creature b
          JOIN ring r ON b.ring_id = r.id
 ORDER BY r.weight DESC, r.id ASC
@@ -86,28 +99,37 @@ $$ LANGUAGE plpgsql;
 
 
 CREATE OR REPLACE FUNCTION destroy_elf_cities()
-RETURNS integer AS $$
+    RETURNS integer AS $$
 DECLARE
-deleted_count integer := 0;
-    safe_city_id bigint;
+    destination_id bigint;
+    deleted_count integer;
 BEGIN
+    SELECT id INTO destination_id
+    FROM magic_city
+    WHERE governor IS DISTINCT FROM 'ELF'
+    ORDER BY id
+    LIMIT 1
+        FOR SHARE;
 
-SELECT id INTO safe_city_id FROM magic_city WHERE governor IS DISTINCT FROM 'ELF' LIMIT 1;
+    IF destination_id IS NULL AND EXISTS (
+        SELECT 1
+        FROM book_creature b
+                 JOIN magic_city c ON c.id = b.creature_location_id
+        WHERE c.governor = 'ELF'
+    ) THEN
+        RETURN NULL;
+    END IF;
 
-IF safe_city_id IS NOT NULL THEN
+    IF destination_id IS NOT NULL THEN
+        UPDATE book_creature b
+        SET creature_location_id = destination_id,
+            version = b.version + 1
+        FROM magic_city c
+        WHERE c.id = b.creature_location_id AND c.governor = 'ELF';
+    END IF;
 
-UPDATE book_creature
-SET creature_location_id = safe_city_id
-WHERE creature_location_id IN (SELECT id FROM magic_city WHERE governor = 'ELF');
-ELSE
-
-DELETE FROM book_creature
-WHERE creature_location_id IN (SELECT id FROM magic_city WHERE governor = 'ELF');
-END IF;
-
-DELETE FROM magic_city WHERE governor = 'ELF';
-GET DIAGNOSTICS deleted_count = ROW_COUNT;
-
-RETURN deleted_count;
+    DELETE FROM magic_city WHERE governor = 'ELF';
+    GET DIAGNOSTICS deleted_count = ROW_COUNT;
+    RETURN deleted_count;
 END;
 $$ LANGUAGE plpgsql;

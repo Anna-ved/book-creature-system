@@ -22,17 +22,28 @@
             <p:menuitem value="Создать существо" outcome="create.xhtml" icon="pi pi-fw pi-user-plus"/>
             <p:menuitem value="Специальные операции" outcome="special.xhtml" icon="pi pi-fw pi-bolt"/>
             <p:menuitem value="Справочники" outcome="references.xhtml" icon="pi pi-fw pi-database"/>
+            <p:submenu label="Вход: #{request.remoteUser}" icon="pi pi-user">
+                <p:menuitem value="Выйти"
+                            action="#{sessionBean.logout}"
+                            ajax="false"
+                            icon="pi pi-sign-out"/>
+            </p:submenu>
         </p:menubar>
     </h:form>
 
-    <p:growl id="growl" showDetail="true"/>
+    <p:growl id="growl"
+             severity="info"
+             showDetail="false"
+             sticky="false"
+             life="3500"/>
 
     <div class="grid-container">
 
         <div class="card">
             <h3>Добавить Координаты</h3>
             <h:form id="coordForm" styleClass="ui-fluid">
-                <p:messages id="coordMessages" showDetail="true" closable="true"/>
+                <p:messages id="coordMessages" severity="warn,error,fatal"
+                            showDetail="true" skipDetailIfEqualsSummary="true" closable="true"/>
 
                 <div class="field">
                     <p:outputLabel for="coordX" value="Координата X (макс. 161):"/>
@@ -55,7 +66,8 @@
         <div class="card">
             <h3>Добавить Магический Город</h3>
             <h:form id="cityForm" styleClass="ui-fluid">
-                <p:messages id="cityMessages" showDetail="true" closable="true"/>
+                <p:messages id="cityMessages" severity="warn,error,fatal"
+                            showDetail="true" skipDetailIfEqualsSummary="true" closable="true"/>
 
                 <div class="field">
                     <p:outputLabel for="cityName" value="Название города:"/>
@@ -101,7 +113,8 @@
         <div class="card">
             <h3>Добавить Кольцо</h3>
             <h:form id="ringForm" styleClass="ui-fluid">
-                <p:messages id="ringMessages" showDetail="true" closable="true"/>
+                <p:messages id="ringMessages" severity="warn,error,fatal"
+                            showDetail="true" skipDetailIfEqualsSummary="true" closable="true"/>
 
                 <div class="field">
                     <p:outputLabel for="ringName" value="Название кольца:"/>

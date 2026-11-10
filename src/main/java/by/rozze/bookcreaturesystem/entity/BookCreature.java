@@ -21,7 +21,8 @@ public class BookCreature {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Positive(message = "ID должен быть больше нуля")
+    private Integer id;
 
     @Version
     @Column(nullable = false)

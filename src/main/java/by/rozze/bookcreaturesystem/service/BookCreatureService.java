@@ -17,7 +17,7 @@ public class BookCreatureService {
         return repository.findAll();
     }
 
-    public BookCreature getById(Long id) {
+    public BookCreature getById(Integer id) {
         BookCreature creature = repository.findByIdWithRelations(id);
         if (creature == null) {
             throw new IllegalArgumentException("Объект с id " + id + " не найден");
@@ -33,11 +33,7 @@ public class BookCreatureService {
         return repository.update(bookCreature);
     }
 
-    public void delete(Long id) {
-        deleteWithReassignment(id, null);
-    }
-
-    public void deleteWithReassignment(Long toDeleteId, Long targetId) {
+    public void deleteWithReassignment(Integer toDeleteId, Integer targetId) {
         boolean deleted = repository.deleteWithReassignment(toDeleteId, targetId);
         if (!deleted) {
             throw new IllegalArgumentException("Объект с id " + toDeleteId + " не найден для удаления");

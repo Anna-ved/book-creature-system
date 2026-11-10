@@ -21,6 +21,12 @@
             <p:menuitem value="Создать существо" outcome="create.xhtml" icon="pi pi-fw pi-user-plus"/>
             <p:menuitem value="Специальные операции" outcome="special.xhtml" icon="pi pi-fw pi-bolt"/>
             <p:menuitem value="Справочники" outcome="references.xhtml" icon="pi pi-fw pi-database"/>
+            <p:submenu label="Вход: #{request.remoteUser}" icon="pi pi-user">
+                <p:menuitem value="Выйти"
+                            action="#{sessionBean.logout}"
+                            ajax="false"
+                            icon="pi pi-sign-out"/>
+            </p:submenu>
         </p:menubar>
     </h:form>
 
@@ -28,16 +34,27 @@
         <h2>Создание нового существа (BookCreature)</h2>
 
         <h:form id="createForm" styleClass="ui-fluid">
-            <p:messages id="messages" showDetail="true" closable="true"/>
+            <p:messages id="messages" globalOnly="true" showDetail="false" closable="true"/>
 
             <div class="field">
                 <p:outputLabel for="name" value="Имя:"/>
                 <p:inputText id="name" value="#{bookCreatureBean.newCreature.name}" required="true" requiredMessage="Имя не может быть пустым"/>
+                <p:message for="name" display="text" showSummary="true" showDetail="false"/>
             </div>
 
             <div class="field">
                 <p:outputLabel for="age" value="Возраст (> 0):"/>
-                <p:inputNumber id="age" value="#{bookCreatureBean.newCreature.age}" decimalPlaces="0" minValue="1" required="true" requiredMessage="Возраст должен быть больше 0"/>
+                <p:inputText id="age"
+                             value="#{bookCreatureBean.newCreature.age}"
+                             required="true"
+                             requiredMessage="Укажите возраст."
+                             converterMessage="Введите возраст целым числом, например 33."
+                             validatorMessage="Возраст должен быть не меньше 1.">
+                    <f:converter converterId="jakarta.faces.Integer"/>
+                    <f:validateLongRange minimum="1"/>
+                    <f:validateBean disabled="true"/>
+                </p:inputText>
+                <p:message for="age" display="text" showSummary="true" showDetail="false"/>
             </div>
 
             <div class="field">
@@ -46,16 +63,28 @@
                     <f:selectItem itemLabel="Не выбран" itemValue="#{null}"/>
                     <f:selectItems value="#{bookCreatureBean.creatureTypes}" var="type" itemValue="#{type}" itemLabel="#{type}"/>
                 </p:selectOneMenu>
+                <p:message for="type" display="text" showSummary="true" showDetail="false"/>
             </div>
 
             <div class="field">
                 <p:outputLabel for="attack" value="Уровень атаки (> 0):"/>
-                <p:inputNumber id="attack" value="#{bookCreatureBean.newCreature.attackLevel}" minValue="0.01" required="true" requiredMessage="Уровень атаки должен быть > 0"/>
+                <p:inputText id="attack"
+                             value="#{bookCreatureBean.newCreature.attackLevel}"
+                             required="true"
+                             requiredMessage="Укажите уровень атаки."
+                             converterMessage="Введите число, например 0.001."
+                             validatorMessage="Уровень атаки должен быть больше нуля.">
+                    <f:converter converterId="jakarta.faces.Float"/>
+                    <f:validator validatorId="positiveAttackLevel"/>
+                    <f:validateBean disabled="true"/>
+                </p:inputText>
+                <p:message for="attack" display="text" showSummary="true" showDetail="false"/>
             </div>
 
             <div class="field">
                 <p:outputLabel for="defense" value="Уровень защиты (> 0, необязательно):"/>
                 <p:inputNumber id="defense" value="#{bookCreatureBean.newCreature.defenseLevel}" decimalPlaces="0" minValue="1"/>
+                <p:message for="defense" display="text" showSummary="true" showDetail="false"/>
             </div>
 
             <div class="field">
@@ -64,6 +93,7 @@
                     <f:selectItem itemLabel="-- Выберите координаты --" itemValue="#{null}"/>
                     <f:selectItems value="#{bookCreatureBean.coordinates}" var="coords" itemValue="#{coords.id}" itemLabel="ID #{coords.id} (X: #{coords.x}, Y: #{coords.y})"/>
                 </p:selectOneMenu>
+                <p:message for="coords" display="text" showSummary="true" showDetail="false"/>
             </div>
 
             <div class="field">
@@ -72,6 +102,7 @@
                     <f:selectItem itemLabel="-- Выберите город --" itemValue="#{null}"/>
                     <f:selectItems value="#{bookCreatureBean.cities}" var="city" itemValue="#{city.id}" itemLabel="#{city.name}"/>
                 </p:selectOneMenu>
+                <p:message for="city" display="text" showSummary="true" showDetail="false"/>
             </div>
 
             <div class="field">
@@ -80,13 +111,14 @@
                     <f:selectItem itemLabel="Без кольца" itemValue="#{null}"/>
                     <f:selectItems value="#{bookCreatureBean.rings}" var="ring" itemValue="#{ring.id}" itemLabel="#{ring.name} (вес #{ring.weight})"/>
                 </p:selectOneMenu>
+                <p:message for="ring" display="text" showSummary="true" showDetail="false"/>
             </div>
 
             <div style="margin-top: 20px;">
                 <p:commandButton value="Создать существо"
                                  icon="pi pi-check"
                                  action="#{bookCreatureBean.create}"
-                                 update="messages"
+                                 update="@form"
                                  styleClass="ui-button-success"/>
             </div>
         </h:form>

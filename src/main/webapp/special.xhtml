@@ -23,6 +23,12 @@
             <p:menuitem value="Создать существо" outcome="create.xhtml" icon="pi pi-fw pi-user-plus"/>
             <p:menuitem value="Специальные операции" outcome="special.xhtml" icon="pi pi-fw pi-bolt"/>
             <p:menuitem value="Справочники" outcome="references.xhtml" icon="pi pi-fw pi-database"/>
+            <p:submenu label="Вход: #{request.remoteUser}" icon="pi pi-user">
+                <p:menuitem value="Выйти"
+                            action="#{sessionBean.logout}"
+                            ajax="false"
+                            icon="pi pi-sign-out"/>
+            </p:submenu>
         </p:menubar>
     </h:form>
 
@@ -30,7 +36,6 @@
         <h2>Специальные операции над объектами</h2>
         <p style="color: #6c757d;">Все операции выполняются в виде хранимых функций PostgreSQL на стороне СУБД.</p>
 
-        <p:growl id="growl" showDetail="true"/>
 
         <div class="op-section">
             <h3>1. Рассчитать среднее значение attackLevel для всех существ</h3>
@@ -38,10 +43,11 @@
                 <p:commandButton value="Рассчитать среднюю атаку"
                                  icon="pi pi-calculator"
                                  action="#{specialOperationsBean.runAvgAttackLevel}"
-                                 update=":formAvg:avgResult :growl"
+                                 update=":formAvg:avgResult"
                                  styleClass="ui-button-primary"/>
 
                 <h:panelGroup id="avgResult" layout="block" styleClass="result-box">
+                    <p:messages globalOnly="true" showDetail="false" closable="true"/>
                     <h:outputText value="Средний уровень атаки: #{specialOperationsBean.avgAttackLevel}"
                                   rendered="#{specialOperationsBean.avgAttackLevel != null}"/>
                 </h:panelGroup>
@@ -54,10 +60,11 @@
                 <p:commandButton value="Сгруппировать по attackLevel"
                                  icon="pi pi-chart-bar"
                                  action="#{specialOperationsBean.runGroupByAttack}"
-                                 update=":formGroup:groupTable :growl"
+                                 update=":formGroup:groupResult"
                                  styleClass="ui-button-info"/>
 
-                <div style="margin-top: 15px; max-width: 500px;">
+                <h:panelGroup id="groupResult" layout="block" style="margin-top: 15px; max-width: 500px;">
+                    <p:messages globalOnly="true" showDetail="false" closable="true"/>
                     <p:dataTable id="groupTable"
                                  value="#{specialOperationsBean.attackGroups}"
                                  var="g"
@@ -70,7 +77,7 @@
                             <h:outputText value="#{g.count}"/>
                         </p:column>
                     </p:dataTable>
-                </div>
+                </h:panelGroup>
             </h:form>
         </div>
 
@@ -83,11 +90,12 @@
                     <p:commandButton value="Посчитать"
                                      icon="pi pi-search"
                                      action="#{specialOperationsBean.runCountRingLessThan}"
-                                     update=":formRingCount:countResult :growl"
+                                     update=":formRingCount:countResult"
                                      styleClass="ui-button-secondary"/>
                 </div>
 
                 <h:panelGroup id="countResult" layout="block" styleClass="result-box">
+                    <p:messages globalOnly="true" showDetail="false" closable="true"/>
                     <h:outputText value="Найдено существ: #{specialOperationsBean.countRingLessThan}"
                                   rendered="#{specialOperationsBean.countRingLessThan != null}"/>
                 </h:panelGroup>
@@ -100,10 +108,11 @@
                 <p:commandButton value="Найти персонажа"
                                  icon="pi pi-star"
                                  action="#{specialOperationsBean.runStrongestRing}"
-                                 update=":formStrongest:strongestResult :growl"
+                                 update=":formStrongest:strongestResult"
                                  styleClass="ui-button-warning"/>
 
                 <h:panelGroup id="strongestResult" layout="block" style="margin-top: 15px;">
+                    <p:messages globalOnly="true" showDetail="false" closable="true"/>
                     <p:panel header="Персонаж с сильнейшим кольцом"
                              rendered="#{specialOperationsBean.strongestRingCreature != null}"
                              style="max-width: 500px;">
@@ -131,13 +140,13 @@
         <div class="op-section">
             <h3>5. Уничтожить города эльфов</h3>
             <p style="color: #868e96; font-size: 0.9em;">
-                Удаляет города, у которых губернатором является эльф (ELF). Жители городов переселяются в безопасный город или удаляются.
+                Удаляет города с губернатором ELF. Жители переезжают в город без губернатора-эльфа с наименьшим ID. Если переселять жителей некуда, операция отменяется.
             </p>
             <h:form id="formDestroy">
                 <p:commandButton value="Уничтожить города эльфов"
                                  icon="pi pi-exclamation-triangle"
                                  action="#{specialOperationsBean.runDestroyElfCities}"
-                                 update=":formDestroy:destroyResult :growl"
+                                 update=":formDestroy:destroyResult"
                                  styleClass="ui-button-danger">
                     <p:confirm header="Подтверждение" message="Вы уверены, что хотите уничтожить города эльфов?" icon="pi pi-info-circle"/>
                 </p:commandButton>
@@ -148,6 +157,7 @@
                 </p:confirmDialog>
 
                 <h:panelGroup id="destroyResult" layout="block" styleClass="result-box" style="color: #c92a2a;">
+                    <p:messages globalOnly="true" showDetail="false" closable="true"/>
                     <h:outputText value="Операция завершена. Уничтожено городов: #{specialOperationsBean.destroyedCitiesCount}"
                                   rendered="#{specialOperationsBean.destroyedCitiesCount != null}"/>
                 </h:panelGroup>

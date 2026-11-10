@@ -67,6 +67,7 @@
             <h3>Добавить Магический Город</h3>
             <h:form id="cityForm" styleClass="ui-fluid">
                 <p:messages id="cityMessages" severity="warn,error,fatal"
+                            forIgnores="cityForm:cityEstablishmentDate"
                             showDetail="true" skipDetailIfEqualsSummary="true" closable="true"/>
 
                 <div class="field">
@@ -82,6 +83,23 @@
                 <div class="field">
                     <p:outputLabel for="cityPop" value="Население (> 0):"/>
                     <p:inputNumber id="cityPop" value="#{referenceBean.city.population}" minValue="1" decimalPlaces="0" required="true" requiredMessage="Население должно быть > 0"/>
+                </div>
+
+                <div class="field">
+                    <p:outputLabel for="cityEstablishmentDate"
+                                   value="Дата основания (необязательно):"/>
+
+                    <p:datePicker id="cityEstablishmentDate"
+                                  value="#{referenceBean.city.establishmentDate}"
+                                  pattern="dd.MM.yyyy"
+                                  placeholder="ДД.ММ.ГГГГ"
+                                  showIcon="true"
+                                  resolverStyle="strict"
+                                  keepInvalid="true"
+                                  converterMessage="Введите существующую дату в формате ДД.ММ.ГГГГ."/>
+
+                    <p:message for="cityEstablishmentDate" display="text"
+                               showSummary="true" showDetail="false"/>
                 </div>
 
                 <div class="field">

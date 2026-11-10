@@ -3,6 +3,7 @@ package by.rozze.bookcreaturesystem.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -36,6 +37,7 @@ public class MagicCity {
     @Column(nullable = false)
     private Long population;
 
+    @PastOrPresent(message = "Дата основания не может быть в будущем")
     @Column(name = "establishment_date")
     private java.time.LocalDate establishmentDate;
 

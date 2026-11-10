@@ -1,13 +1,21 @@
 package by.rozze.bookcreaturesystem.repository;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.PersistenceUnit;
+import jakarta.inject.Inject;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
+import org.eclipse.persistence.queries.ReadAllQuery;
+import org.eclipse.persistence.queries.ReadObjectQuery;
+import org.eclipse.persistence.sessions.Session;
+
+import java.util.List;
 
 public abstract class BaseRepo<T, ID> {
 
-    @PersistenceUnit(unitName = "bookCreaturePU")
-    protected EntityManagerFactory managerFactory;
+    @Inject
+    protected EclipseLinkStore store;
+
+    @Inject
+    private Validator validator;
 
     private final Class<T> entityClass;
 
@@ -16,31 +24,33 @@ public abstract class BaseRepo<T, ID> {
     }
 
     public T save(T entity) {
-        EntityManager entityManager = managerFactory.createEntityManager();
-
-        try {
-            entityManager.getTransaction().begin();
-            entityManager.persist(entity);
-            entityManager.getTransaction().commit();
-
-            return entity;
-        } catch (RuntimeException e) {
-            if (entityManager.getTransaction().isActive()) {
-                entityManager.getTransaction().rollback();
-            }
-            throw e;
-        } finally {
-            entityManager.close();
-        }
+        validate(entity);
+        return store.write(unit -> entityClass.cast(unit.registerNewObject(entity)));
     }
 
     public T findById(ID id) {
-        EntityManager entityManager = managerFactory.createEntityManager();
+        return store.read(session -> readById(session, entityClass, id));
+    }
 
-        try {
-            return entityManager.find(entityClass, id);
-        } finally {
-            entityManager.close();
+    @SuppressWarnings("unchecked")
+    public List<T> findAll() {
+        return store.read(session -> {
+            ReadAllQuery query = new ReadAllQuery(entityClass);
+            query.addAscendingOrdering("id");
+            return (List<T>) session.executeQuery(query);
+        });
+    }
+
+    protected <E> E readById(Session session, Class<E> type, Object id) {
+        ReadObjectQuery query = new ReadObjectQuery(type);
+        query.setSelectionId(id);
+        return type.cast(session.executeQuery(query));
+    }
+
+    protected void validate(T entity) {
+        var violations = validator.validate(entity);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
         }
     }
 }
